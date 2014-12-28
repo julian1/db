@@ -1,0 +1,37 @@
+
+Hi Marty,
+
+The following works for me on our prod/test Ubuntu machines.
+
+Note, this involves purging the existing postgresql to install a version that
+is binary compatible with postgis 2. It is therefore necessary to backup any
+databases you may want to keep and re-import after installing.
+
+
+sudo dpkg --purge postgis postgresql-9.1-postgis
+sudo aptitude install software-properties-common
+sudo apt-get install python-software-properties
+sudo apt-add-repository ppa:sharpie/for-science
+sudo apt-add-repository ppa:sharpie/postgis-nightly
+sudo apt-get update
+sudo apt-get install postgresql-9.1-postgis
+
+# Example of creating postgis enabled db
+sudo -s
+su postgres
+psql -d postgres -c 'create database harvest'
+psql -d harvest -c 'create extension postgis'
+psql -d harvest -c 'select postgis_version();'
+
+>>            postgis_version             
+---------------------------------------
+ 2.1 USE_GEOS=1 USE_PROJ=1 USE_STATS=1
+(1 row)
+
+# Setting the geometry grants
+psql -d harvest -c "grant all on geometry_columns to public;"
+psql -d harvest -c "grant all on geography_columns to public;"
+psql -d harvest -c "grant all on spatial_ref_sys to public;"
+
+
+

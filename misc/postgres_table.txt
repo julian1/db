@@ -1,0 +1,96 @@
+
+
+--"SELECT file_id, profile_id, device_wmo_ref,utc_date,lat,lon FROM sattag_nrt_profiles
+--ORDER BY device_wmo_ref, utc_date"
+
+drop function getAllFoo();
+drop table foo  ;
+CREATE TABLE foo (file_id INT, profile_id INT, device_wmo_ref INT, utc_date INT, lat INT, lon INT );
+
+CREATE OR REPLACE FUNCTION getAllFoo() RETURNS SETOF foo AS
+$BODY$
+DECLARE
+    r foo%rowtype;
+BEGIN
+	delete from foo *;
+
+	  if exists(select * from information_schema.tables 
+		where 
+		    table_catalog = CURRENT_CATALOG and table_schema = CURRENT_SCHEMA
+		    and table_name = 'sattag_nrt_profiles') 
+	then		     
+	   -- INSERT INTO foo VALUES (1, 2, 3, 4, 5, 6);		 
+		insert into foo select * FROM sattag_nrt_profiles ORDER BY device_wmo_ref, utc_date;
+	    end if;
+	  
+    FOR r IN SELECT * FROM foo   
+    LOOP        
+        RETURN NEXT r; -- return current row of SELECT
+    END LOOP;
+    RETURN;
+END
+$BODY$
+LANGUAGE 'plpgsql' ;
+
+SELECT * FROM getallfoo();
+
+-------------
+
+CREATE TABLE IF NOT EXISTS foo (fooid INT, foosubid INT, fooname TEXT);
+
+
+CREATE OR REPLACE FUNCTION getAllFoo() RETURNS SETOF foo AS
+$BODY$
+DECLARE
+    r foo%rowtype;
+BEGIN
+
+	delete from foo *;
+	INSERT INTO foo VALUES (1, 2, 'three');
+	INSERT INTO foo VALUES (4, 5, 'six');
+
+    FOR r IN SELECT * FROM foo
+    WHERE fooid > 0
+    LOOP
+        -- can do some processing here
+        RETURN NEXT r; -- return current row of SELECT
+    END LOOP;
+    RETURN;
+END
+$BODY$
+LANGUAGE 'plpgsql' ;
+
+SELECT * FROM getallfoo();
+
+
+---------------------------------------------
+--"SELECT file_id, profile_id, device_wmo_ref,utc_date,lat,lon FROM sattag_nrt_profiles
+--ORDER BY device_wmo_ref, utc_date"
+
+drop function getAllFoo();
+drop table foo  ;
+CREATE TABLE foo (file_id INT, profile_id INT, device_wmo_ref INT, utc_date INT, lat INT, lon INT );
+
+
+CREATE OR REPLACE FUNCTION getAllFoo() RETURNS SETOF foo AS
+$BODY$
+DECLARE
+    r foo%rowtype;
+BEGIN
+
+	delete from foo *;
+	INSERT INTO foo VALUES (1, 2, 3,4,5,6);
+	--INSERT INTO foo VALUES (4, 5, 'six');
+
+    FOR r IN SELECT * FROM foo
+    --WHERE fooid > 0
+    LOOP
+        -- can do some processing here
+        RETURN NEXT r; -- return current row of SELECT
+    END LOOP;
+    RETURN;
+END
+$BODY$
+LANGUAGE 'plpgsql' ;
+
+SELECT * FROM getallfoo();
