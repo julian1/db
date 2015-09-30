@@ -474,39 +474,42 @@ grant all on table queries to public;
 
 ----- locks stuff
 
+
 create view locks as
-select 
-	d.datname as database,
-	n.nspname as schema,
-	o.relname as relation, 
+select
+        d.datname as database,
 
-	a.usename,
+        n.nspname as schema,
+        o.relname as relation,
 
-	to_char( now() - a.query_start, 'HH24:MI:SS') as duration,
-	to_char( now() - a.backend_start, 'HH24:MI:SS') as bduration,
+        a.usename,
+        to_char( now() - a.query_start, 'HH24:MI:SS') as duration,
+        to_char( now() - a.backend_start, 'HH24:MI:SS') as bduration,
 
-	pg_locks.locktype ,
---	pg_locks.page, 
---	pg_locks.tuple,
-	pg_locks.virtualxid, 
-	pg_locks.transactionid,
-	pg_locks.pid,
-	pg_locks.mode,
-	pg_locks.granted
+        pg_locks.locktype ,
+--      pg_locks.page, 
+        pg_locks.tuple,
+        pg_locks.virtualxid,
+        pg_locks.transactionid,
+        pg_locks.pid,
+        pg_locks.mode,
+        pg_locks.granted
 
---	regexp_replace( a.current_query, '\r|\n', '', 'g') as query
+--      a.query
+
+        from pg_locks
+        join pg_class o on o.relfilenode=pg_locks.relation
+        join pg_namespace n on n.oid=o.relnamespace
+
+        join pg_database d ON pg_locks.database = d.oid
+        join pg_stat_activity a ON a.pid = pg_locks.pid  -- ok, since only one query per connction.
+
+        order by mode desc, pid;
 
 
-	from pg_locks 
-	left join pg_class o on o.relfilenode=pg_locks.relation   
-	left join pg_namespace n on n.oid=o.relnamespace
-	left join pg_database d ON pg_locks.database = d.oid
-	left join pg_stat_activity a ON a.pid = pg_locks.pid
 
---	where a.usename = 'geoserver_rc'
 
-	order by mode desc, pid;
-
+grant all on table locks to public;
 -- locktype  | database | relation | page | tuple | virtualxid | transactionid | classid | objid | objsubid | virtualtransaction |  pid  |      mode       | granted
 
 -- SELECT bl.pid                 AS blocked_pid,
@@ -525,7 +528,6 @@ select
   --WHERE NOT bl.granted and a.usename like '$1%' and a.datname='$2';
 -- ;
 
-grant all on table locks to public;
 
 
 
