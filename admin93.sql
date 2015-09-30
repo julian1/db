@@ -479,8 +479,9 @@ create view locks as
 select
         d.datname as database,
 
-        n.nspname as schema,
+        -- n.nspname as schema,
         o.relname as relation,
+        pg_locks.relation::regclass as relation2,
 
         a.usename,
         to_char( now() - a.query_start, 'HH24:MI:SS') as duration,
@@ -498,14 +499,14 @@ select
 --      a.query
 
         from pg_locks
-        join pg_class o on o.relfilenode=pg_locks.relation
-        join pg_namespace n on n.oid=o.relnamespace
+        left join pg_class o on o.relfilenode=pg_locks.relation
+        left join pg_namespace n on n.oid=o.relnamespace
+        left join pg_database d ON pg_locks.database = d.oid
+        left join pg_stat_activity a ON a.pid = pg_locks.pid  -- ok, since only one query per connction.
 
-        join pg_database d ON pg_locks.database = d.oid
-        join pg_stat_activity a ON a.pid = pg_locks.pid  -- ok, since only one query per connction.
+        where d.datname = 'aatams3'
 
         order by mode desc, pid;
-
 
 
 
