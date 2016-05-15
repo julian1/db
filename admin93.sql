@@ -470,7 +470,7 @@ create view queries as
     regexp_replace( query, '\r|\n', '', 'g') as query
   from pg_stat_activity
 --  where current_query != '<IDLE>'
-  order by query_duration desc
+  order by state,query_duration desc
 ;
 grant all on table queries to public;
 
