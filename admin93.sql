@@ -448,7 +448,8 @@ select
 	client_addr, 
 	to_char( now() - backend_start, 'HH24:MI:SS') as duration, 
 	pid, 
-	waiting		
+	waiting,	
+	state
 	from pg_stat_activity  
 	order by usename, duration desc
 ;
@@ -459,15 +460,17 @@ grant all on table users2 to public;
 -- current queries being performed, ordered by longest running
 create view queries as
   select 
-    to_char( now() - backend_start, 'HH24:MI:SS') as b_duration,
-    to_char( now() - query_start, 'HH24:MI:SS') as q_duration,
-    pid as pid,
-    usename as role,
-    datname as database,
+    to_char(now() - backend_start, 'HH24:MI:SS') as backend_duration,
+    to_char(now() - query_start, 'HH24:MI:SS') as query_duration,
+    state,
+    waiting,
+    pid,
+    usename,
+    datname,
     regexp_replace( query, '\r|\n', '', 'g') as query
   from pg_stat_activity
 --  where current_query != '<IDLE>'
-  order by q_duration desc
+  order by query_duration desc
 ;
 grant all on table queries to public;
 
